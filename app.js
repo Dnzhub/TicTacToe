@@ -15,6 +15,8 @@ const gameBoard = (function () {
     _initBoard();
 
     const getBoard = () => board;
+    const getRows = () => rows;
+    const getColumns = () => columns;
 
     function _renderBoard() {
         let cells = "";
@@ -34,7 +36,7 @@ const gameBoard = (function () {
         _renderBoard();
     }
 
-    return { getBoard, attachPlayerToCell };
+    return { getBoard, getRows, getColumns, attachPlayerToCell };
 })();
 
 const gameController = (function () {
@@ -43,8 +45,11 @@ const gameController = (function () {
     player1.setToken("X");
     player2.setToken("O");
 
+    let anyWinner = false;
     let activePlayer = player1;
     let randNumber = Math.floor(Math.random() * 2) + 1;
+
+    let getActivePlayer = () => activePlayer;
 
     function chooseStarter() {
         if (randNumber === 1) activePlayer = player1;
@@ -54,17 +59,85 @@ const gameController = (function () {
 
     function switchActivePlayer() {
         activePlayer = activePlayer === player1 ? activePlayer = player2 : activePlayer = player1;
-        console.log(activePlayer.getToken());
+    }
+
+    function checkIfBoardFull() {
+
+        let emptyCellCount = 0;
+        gameBoard.getBoard().forEach(row => {
+            if (row.filter(cell => cell.getToken() === 0).length) {
+                emptyCellCount++;
+            }
+        })
+        if (emptyCellCount >= 1) return false;
+        return true;
+
+    }
+
+
+
+    function checkWinCondition() {
+        const board = gameBoard.getBoard();
+        anyWinner = false;
+        //Check rows
+        for (let row = 0; row < gameBoard.getRows(); row++) {
+            if (
+                board[row][0].getToken() === board[row][1].getToken() &&
+                board[row][1].getToken() === board[row][2].getToken() &&
+                board[row][0].getToken() !== 0
+            ) {
+                anyWinner = true;
+                console.log(`${activePlayer.getToken()} is winner!`);
+                break;
+            }
+        }
+        //Check columns
+        for (let column = 0; column < gameBoard.getColumns(); column++) {
+            if (
+                board[0][column].getToken() === board[1][column].getToken() &&
+                board[1][column].getToken() === board[2][column].getToken() &&
+                board[0][column].getToken() !== 0
+            ) {
+                anyWinner = true;
+                console.log(`${activePlayer.getToken()} is winner!`);
+                break;
+            }
+        }
+
+        //Check Diagonal
+        if (
+            board[0][0].getToken() === board[1][1].getToken() &&
+            board[1][1].getToken() === board[2][2].getToken() &&
+            board[0][0].getToken() !== 0
+        ) {
+            anyWinner = true;
+            console.log(`${activePlayer.getToken()} is winner!`);
+        }
+
+        //Check Cross Diagonal
+        if (
+            board[0][2].getToken() === board[1][1].getToken() &&
+            board[1][1].getToken() === board[2][0].getToken() &&
+            board[0][2].getToken() !== 0
+        ) {
+            anyWinner = true;
+            console.log(`${activePlayer.getToken()} is winner!`);
+        }
+
+        if (!anyWinner) {
+
+            console.log("No one is winner yet");
+        }
     }
 
     function playRound(row, column) {
+
         const maxTokenSize = 2;
 
         let isOutOfRangeOrNotEmpty =
             row > maxTokenSize ||
             column > maxTokenSize ||
             gameBoard.getBoard()[row][column].getToken() !== 0;
-
         //if cell is already taken do nothing
         if (isOutOfRangeOrNotEmpty) {
             alert("Out of range or token has already taken");
@@ -72,13 +145,23 @@ const gameController = (function () {
         }
         else {
             gameBoard.attachPlayerToCell(row, column, activePlayer.getToken());
-
+            checkWinCondition();
+            if (anyWinner) {
+                activePlayer.addScore();
+                //Reset Board
+                return;
+            }
+            else if (checkIfBoardFull()) {
+                //Reset board
+                console.log("Game over. Board is full")
+            }
+            switchActivePlayer();
         }
 
     }
 
 
-    return { player1, player2, activePlayer, playRound, switchActivePlayer };
+    return { playRound, checkWinCondition, checkIfBoardFull, getActivePlayer };
 })();
 
 
