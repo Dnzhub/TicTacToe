@@ -36,7 +36,16 @@ const gameBoard = (function () {
         _renderBoard();
     }
 
-    return { getBoard, getRows, getColumns, attachPlayerToCell };
+    function resetBoard() {
+        board.forEach(row => {
+            row.forEach(cell => {
+                cell.resetCell();
+
+            })
+        })
+    }
+
+    return { getBoard, getRows, getColumns, attachPlayerToCell, resetBoard };
 })();
 
 const gameController = (function () {
@@ -46,6 +55,7 @@ const gameController = (function () {
     player2.setToken("O");
 
     let anyWinner = false;
+    let shouldReset = false;
     let activePlayer = player1;
     let randNumber = Math.floor(Math.random() * 2) + 1;
 
@@ -57,15 +67,18 @@ const gameController = (function () {
     }
     chooseStarter();
 
+    const checkWinner = () => anyWinner;
+
     function switchActivePlayer() {
         activePlayer = activePlayer === player1 ? activePlayer = player2 : activePlayer = player1;
     }
 
     function checkIfBoardFull() {
 
+        shouldReset = false;
         let emptyCellCount = 0;
         gameBoard.getBoard().forEach(row => {
-            if (row.filter(cell => cell.getToken() === 0).length) {
+            if (row.filter(cell => cell.getToken() === 0).length > 0) {
                 emptyCellCount++;
             }
         })
@@ -76,9 +89,11 @@ const gameController = (function () {
 
 
 
+
     function checkWinCondition() {
         const board = gameBoard.getBoard();
         anyWinner = false;
+        shouldReset = false;
         //Check rows
         for (let row = 0; row < gameBoard.getRows(); row++) {
             if (
@@ -138,32 +153,76 @@ const gameController = (function () {
             row > maxTokenSize ||
             column > maxTokenSize ||
             gameBoard.getBoard()[row][column].getToken() !== 0;
-        //if cell is already taken do nothing
-        if (isOutOfRangeOrNotEmpty) {
-            alert("Out of range or token has already taken");
+        //if cell is already taken do nothing or incase if you want to test it on console check the row and column size so it wont go above array size
+        if (isOutOfRangeOrNotEmpty) return;
+
+
+        gameBoard.attachPlayerToCell(row, column, activePlayer.getToken());
+        checkWinCondition();
+        if (anyWinner) {
+            activePlayer.addScore();
+            shouldReset = true;
             return;
         }
-        else {
-            gameBoard.attachPlayerToCell(row, column, activePlayer.getToken());
-            checkWinCondition();
-            if (anyWinner) {
-                activePlayer.addScore();
-                //Reset Board
-                return;
-            }
-            else if (checkIfBoardFull()) {
-                //Reset board
-                console.log("Game over. Board is full")
-            }
-            switchActivePlayer();
-        }
+        else if (checkIfBoardFull()) {
+            shouldReset = true;
+            console.log("Game over. Board is full");
 
+        }
+        switchActivePlayer();
+
+
+    }
+    const shouldRestartGame = () => shouldReset;
+
+    return { playRound, shouldRestartGame, getActivePlayer, };
+})();
+
+
+const screenController = (function () {
+    const boardScreen = document.querySelector(".board");
+    const board = gameBoard.getBoard();
+
+
+    function updateCell(selectedCell) {
+
+        selectedCell.innerText = board[selectedCell.dataset.row][selectedCell.dataset.column].getToken();
     }
 
 
-    return { playRound, checkWinCondition, checkIfBoardFull, getActivePlayer };
-})();
+    function createNewBoard() {
+        boardScreen.textContent = '';
+        board.forEach((row, rowIndex) => {
+            row.forEach((cell, columnIndex) => {
+                const cellButton = document.createElement("button");
+                cellButton.classList.add("cell");
+                cellButton.dataset.row = rowIndex;
+                cellButton.dataset.column = columnIndex;
+                if (cell.getToken() !== 0) cellButton.innerText = cell.getToken();
+                boardScreen.appendChild(cellButton);
 
+
+            })
+        })
+    }
+
+    function attachButtonEvent(event) {
+        const selectedCell = event.target;
+
+        gameController.playRound(selectedCell.dataset.row, selectedCell.dataset.column);
+        updateCell(selectedCell);
+        if (gameController.shouldRestartGame()) {
+            gameBoard.resetBoard();
+            createNewBoard();
+        }
+
+
+    }
+    createNewBoard();
+    boardScreen.addEventListener("click", attachButtonEvent);
+
+
+})();
 
 //*******This is factory function. You can create from it as much as you want************
 function cell() {
@@ -174,7 +233,11 @@ function cell() {
     };
     const getToken = () => value;
 
-    return { addToken, getToken };
+    const resetCell = () => {
+        value = 0;
+    }
+
+    return { addToken, getToken, resetCell };
 
 }
 

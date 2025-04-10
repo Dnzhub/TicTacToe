@@ -1,0 +1,15 @@
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    height: 350px;
+    width: 350px;
+    background-color: burlywood;
+}
+
+.cell {
+    background-color: white;
+    border: 1px solid black;
+    font-size: 40px;
+
+}
