@@ -11,8 +11,71 @@
 <body>
     <div class="container">
 
-        <div class="board">
+        <div class="results hide">
+            <h2>Winner is X</h2>
+            <button id="btn-restart">Play Again</button>
+        </div>
+        <div class="board-container">
+            <div class="info hide">
+                <div class="player-info">
+                    <img src="images/blank.jpg" alt="retard" class="info-avatar">
+                    <h3>Score:<span id="player1-score"></span></h3>
+                </div>
+                <div class="player-info">
+                    <img src="images/blank.jpg" alt="retard" class="info-avatar">
+                    <h3>Score: <span id="player2-score"></span></h3>
+                </div>
+            </div>
+            <div class="board hide">
+            </div>
+            <div class="btn-menu-container hide">
+                <button class="btn-menu">Main Menu</button>
+            </div>
+            <div class="gameMenu">
+                <h1>Tic Tac Toe</h1>
+                <!-- <h2>Play Versus</h2>
+                <div class="btn-versus">
+                    <button id="btn-player">Player</button>
+                    <button id="btn-computer">computer</button>
+                </div> -->
+                <div class="avatars">
+                    <div class="avatar-first">
+                        <h3>Player 1</h3>
+                        <h4>Select Avatar</h4>
+                        <div class="avatar-icons">
+                            <img src="images/spider-man.jpg" alt="spider man" class="avatar">
+                            <img src="images/shrek.jpeg" alt="shrek" class="avatar">
+                            <img src="images/winnie.jpg" alt="winnie the pooh" class="avatar">
+                            <img src="images/harold.jpg" alt="harold pain" class="avatar">
+                            <img src="images/dog.jpg" alt="dog" class="avatar">
+                            <img src="images/retardo.png" alt="retard" class="avatar">
+                        </div>
+                    </div>
+                    <div class="avatar-second">
+                        <h3>Player 2</h3>
+                        <h4>Select Avatar</h4>
+                        <div class="avatar-icons">
+                            <img src="images/retardo.png" alt="retard" class="avatar">
+                            <img src="images/spider-man.jpg" alt="spider man" class="avatar">
+                            <img src="images/harold.jpg" alt="harold pain" class="avatar">
+                            <img src="images/winnie.jpg" alt="winnie the pooh" class="avatar">
+                            <img src="images/shrek.jpeg" alt="shrek" class="avatar">
+                            <img src="images/dog.jpg" alt="dog" class="avatar">
+                        </div>
+                    </div>
 
+                </div>
+                <div class="start">
+                    <button class="btn-start">Play</button>
+                </div>
+
+            </div>
+            <div class="round-starter hide">
+                <img src="images/retardo.png" alt="retard" class="selected-avatar first-player-avatar">
+                <h1>VS</h1>
+                <img src="images/shrek.jpeg" alt="shrek" class="selected-avatar second-player-avatar">
+
+            </div>
         </div>
     </div>
     <script src="app.js"></script>

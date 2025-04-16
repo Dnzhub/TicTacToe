@@ -1,18 +1,17 @@
-//*******This is module. Think like its singleton you create once and thats it cant create more************
 const gameBoard = (function () {
     const totalCell = 9;
     const board = [];
 
-    function createBoard() {
+    function _createBoard() {
         for (let i = 0; i < totalCell; i++) {
             board.push(cell());
-            board[i].setID(i);
         }
     }
-    createBoard();
+    _createBoard();
 
     const getBoard = () => board;
 
+    //If you want to play game via console
     function _renderBoardConsole() {
         let cells = '';
         for (let i = 0; i < totalCell; i++) {
@@ -28,7 +27,7 @@ const gameBoard = (function () {
 
     function attachPlayerToCell(index, player) {
         board[index].addToken(player);
-        _renderBoardConsole();
+        //_renderBoardConsole();
     }
 
 
@@ -44,11 +43,10 @@ const gameBoard = (function () {
 
 const gameController = (function () {
     const board = gameBoard.getBoard();
-    const player1 = CreatePlayer();
-    const player2 = CreatePlayer();
-    player1.setToken("X");
-    player2.setToken("O");
-
+    const _player1 = CreatePlayer();
+    const _player2 = CreatePlayer();
+    _player1.setToken("X");
+    _player2.setToken("O");
     const WIN_CONDITIONS = [
         [0, 1, 2],
         [3, 4, 5],
@@ -61,19 +59,24 @@ const gameController = (function () {
 
     ];
 
-
-
-    let activePlayer = player1;
-    let getActivePlayer = () => activePlayer;
-
-    function chooseStarter() {
-        let randNumber = Math.floor(Math.random() * 2) + 1;
-        if (randNumber === 1) activePlayer = player1;
-        else activePlayer = player2;
+    const players = {
+        firstPlayer: _player1,
+        secondPlayer: _player2
     }
-    chooseStarter();
+
+    const getPlayers = () => players;
+
+    let activePlayer = _player1;
+    const getActivePlayer = () => activePlayer;
+
+    function _chooseStarter() {
+        let randNumber = Math.floor(Math.random() * 2) + 1;
+        if (randNumber === 1) activePlayer = _player1;
+        else activePlayer = _player2;
+    }
+    _chooseStarter();
     function switchActivePlayer() {
-        activePlayer = activePlayer === player1 ? activePlayer = player2 : activePlayer = player1;
+        activePlayer = activePlayer === _player1 ? activePlayer = _player2 : activePlayer = _player1;
     }
 
     function isWinner() {
@@ -90,8 +93,8 @@ const gameController = (function () {
     }
 
     function isTie() {
-        let emptyCells = board.filter((cell => cell.getToken() == 0))
-        if (emptyCells > 0) return true;
+        let emptyCells = board.filter((cell => cell.getToken() === 0))
+        if (emptyCells <= 0) return true;
         return false;
     }
 
@@ -105,235 +108,222 @@ const gameController = (function () {
         if (isOutOfRangeOrNotEmpty) return;
 
         gameBoard.attachPlayerToCell(index, activePlayer.getToken());
-        if (isWinner()) {
-            console.log(`${activePlayer.getToken()} is winner`)
-            activePlayer.addScore();
-            gameBoard.resetBoard();
-            return;
-        }
-        else if (isTie()) {
-            console.log("Game over. Board is full");
-            gameBoard.resetBoard();
 
-        }
-        switchActivePlayer();
+
     }
-    return { playRound };
+    return { playRound, getActivePlayer, isWinner, isTie, switchActivePlayer, getPlayers };
 
 })();
 
 
-// const gameController = (function () {
-//     const player1 = CreatePlayer();
-//     const player2 = CreatePlayer();
-//     player1.setToken("X");
-//     player2.setToken("O");
-
-//     let anyWinner = false;
-//     let shouldReset = false;
-//     let activePlayer = player1;
-//     let randNumber = Math.floor(Math.random() * 2) + 1;
-
-//     let getActivePlayer = () => activePlayer;
-
-//     function chooseStarter() {
-//         if (randNumber === 1) activePlayer = player1;
-//         else activePlayer = player2;
-//     }
-//     chooseStarter();
-
-//     const checkWinner = () => anyWinner;
-
-//     function switchActivePlayer() {
-//         activePlayer = activePlayer === player1 ? activePlayer = player2 : activePlayer = player1;
-//     }
-
-//     function checkIfBoardFull() {
-
-//         shouldReset = false;
-//         let emptyCellCount = 0;
-//         gameBoard.getBoard().forEach(row => {
-//             if (row.filter(cell => cell.getToken() === 0).length > 0) {
-//                 emptyCellCount++;
-//             }
-//         })
-//         if (emptyCellCount >= 1) return false;
-//         return true;
-
-//     }
+const screenController = (function () {
+    const _boardScreen = document.querySelector(".board");
+    const _container = document.querySelector(".container");
+    const _board = gameBoard.getBoard();
+    const _playerInfo = _container.querySelector(".info");
+    const _menu = _container.querySelector(".gameMenu");
+    const _roundStarter = _container.querySelector(".round-starter");
+    const _firstPlayerAvatars = document.querySelectorAll(".avatar-first img");
+    const _secondPlayerAvatars = document.querySelectorAll(".avatar-second img");
+    const _startButton = _container.querySelector(".btn-start");
+    const _resultScreen = _container.querySelector(".results");
+    const _restartButton = _container.querySelector("#btn-restart");
+    const _boardContainer = _container.querySelector(".board-container");
+    const _menuButton = _container.querySelector(".btn-menu-container");
 
 
+    let _firstPlayerSelectedAvatar = null;
+    let _secondPlayerSelectedAvatar = null;
+    //Select each player's avatar individually
+    function _storeAvatarSelection(avatars, playerNumber) {
+        avatars.forEach(avatar => {
+            avatar.addEventListener("click", () => {
+                if (playerNumber === 1) {
+                    _firstPlayerSelectedAvatar = avatar
+                    _markSelectedAvatar(_firstPlayerAvatars, _firstPlayerSelectedAvatar);
+                }
+                else {
+                    _secondPlayerSelectedAvatar = avatar;
+                    _markSelectedAvatar(_secondPlayerAvatars, _secondPlayerSelectedAvatar);
+                }
+            })
+        })
+    }
+    function _markSelectedAvatar(playerAvatars, selectedAvatar) {
+        playerAvatars.forEach(avatar => {
+            avatar.classList.remove("selected-item");
+        });
+        selectedAvatar.classList.add("selected-item");
+
+    }
+    _storeAvatarSelection(_firstPlayerAvatars, 1);
+    _storeAvatarSelection(_secondPlayerAvatars, 2);
+
+    function _setUpAvatars(playerOneAvatar, playerTwoAvatar) {
+        if (!_firstPlayerSelectedAvatar) {
+            playerOneAvatar.src = "images/blank.jpg";
+        }
+        else {
+            playerOneAvatar.src = _firstPlayerSelectedAvatar.src;
+        }
+        if (!_secondPlayerSelectedAvatar) {
+            playerTwoAvatar.src = "images/blank.jpg";
+        }
+        else {
+            playerTwoAvatar.src = _secondPlayerSelectedAvatar.src;
+
+        }
+
+    }
 
 
-//     function checkWinCondition() {
-//         const board = gameBoard.getBoard();
-//         anyWinner = false;
-//         shouldReset = false;
-//         //Check rows
-//         for (let row = 0; row < gameBoard.getRows(); row++) {
-//             if (
-//                 board[row][0].getToken() === board[row][1].getToken() &&
-//                 board[row][1].getToken() === board[row][2].getToken() &&
-//                 board[row][0].getToken() !== 0
-//             ) {
-//                 anyWinner = true;
-//                 console.log(`${activePlayer.getToken()} is winner!`);
-//                 break;
-//             }
-//         }
-//         //Check columns
-//         for (let column = 0; column < gameBoard.getColumns(); column++) {
-//             if (
-//                 board[0][column].getToken() === board[1][column].getToken() &&
-//                 board[1][column].getToken() === board[2][column].getToken() &&
-//                 board[0][column].getToken() !== 0
-//             ) {
-//                 anyWinner = true;
-//                 console.log(`${activePlayer.getToken()} is winner!`);
-//                 break;
-//             }
-//         }
-
-//         //Check Diagonal
-//         if (
-//             board[0][0].getToken() === board[1][1].getToken() &&
-//             board[1][1].getToken() === board[2][2].getToken() &&
-//             board[0][0].getToken() !== 0
-//         ) {
-//             anyWinner = true;
-//             console.log(`${activePlayer.getToken()} is winner!`);
-//         }
-
-//         //Check Cross Diagonal
-//         if (
-//             board[0][2].getToken() === board[1][1].getToken() &&
-//             board[1][1].getToken() === board[2][0].getToken() &&
-//             board[0][2].getToken() !== 0
-//         ) {
-//             anyWinner = true;
-//             console.log(`${activePlayer.getToken()} is winner!`);
-//         }
-
-//         if (!anyWinner) {
-
-//             console.log("No one is winner yet");
-//         }
-//     }
-
-//     function playRound(row, column) {
-
-//         const maxTokenSize = 2;
-
-//         let isOutOfRangeOrNotEmpty =
-//             row > maxTokenSize ||
-//             column > maxTokenSize ||
-//             gameBoard.getBoard()[row][column].getToken() !== 0;
-//         //if cell is already taken do nothing or incase if you want to test it on console check the row and column size so it wont go above array size
-//         if (isOutOfRangeOrNotEmpty) return;
+    function _playRoundStarter() {
+        _menu.classList.add("hide");
+        _roundStarter.classList.remove("hide");
+        let firstPlayer = _roundStarter.querySelector("img:nth-of-type(1)");
+        let secondPlayer = _roundStarter.querySelector("img:nth-of-type(2)");
+        _setUpAvatars(firstPlayer, secondPlayer);
+        _startGame(5);
 
 
-//         gameBoard.attachPlayerToCell(row, column, activePlayer.getToken());
-//         checkWinCondition();
-//         if (anyWinner) {
-//             activePlayer.addScore();
-//             shouldReset = true;
-//             return;
-//         }
-//         else if (checkIfBoardFull()) {
-//             shouldReset = true;
-//             console.log("Game over. Board is full");
+    }
+    function _startGame(seconds) {
 
-//         }
-//         switchActivePlayer();
+        setTimeout(() => {
+            let firstPlayerAvatar = _playerInfo.querySelector(".player-info:nth-of-type(1) img");
+            let secondPlayerAvatar = _playerInfo.querySelector(".player-info:nth-of-type(2) img");
+            _setUpAvatars(firstPlayerAvatar, secondPlayerAvatar)
+            _createNewBoard();
+            _updateScores();
+            _roundStarter.classList.add("hide");
+            _menuButton.classList.remove("hide");
+            _boardScreen.classList.remove("hide");
+            _playerInfo.classList.remove("hide");
+        }, seconds * 1000);
+    }
+    _startButton.addEventListener("click", _playRoundStarter);
+
+    _menuButton.addEventListener("click", () => {
+        _roundStarter.classList.add("hide");
+        _boardScreen.classList.add("hide");
+        _playerInfo.classList.add("hide");
+        _menuButton.classList.add("hide");
+        _menu.classList.remove("hide");
+
+        for (let player in gameController.getPlayers()) {
+            gameController.getPlayers()[player].resetScore();
+        }
+
+        _updateScores();
+
+    })
+    function _createNewBoard() {
+        _boardScreen.textContent = '';
+        for (let i = 0; i < _board.length; i++) {
+            const cellButton = document.createElement("button");
+            cellButton.classList.add("cell");
+            cellButton.dataset.index = i;
+            _boardScreen.appendChild(cellButton);
+
+        }
+
+    }
+
+    function _attachButtonEvent(event) {
+        const selectedCell = event.target;
+        //if selected element is board itself or cell is not empty do nothing
+        if (selectedCell === _boardScreen || _board[selectedCell.dataset.index].getToken() !== 0) return;
+
+        gameController.playRound(selectedCell.dataset.index);
+        _showResults();
+        _updateCell(selectedCell);
+        gameController.switchActivePlayer();
+
+    }
+    function _updateScores() {
+
+        _playerInfo.querySelector("#player1-score").innerText = gameController.getPlayers().firstPlayer.getScore();
+        _playerInfo.querySelector("#player2-score").innerText = gameController.getPlayers().secondPlayer.getScore();
+    }
+
+    function _updateCell(selectedCell) {
+
+        selectedCell.innerText = _board[selectedCell.dataset.index].getToken();
+        selectedCell.classList.add('animateCell');
+
+        setTimeout(() => {
+            selectedCell.classList.remove('animateCell');
+        }, 500);
+    }
+
+    function _showResults() {
+        let resultText = _resultScreen.querySelector("h2");
+        if (gameController.isWinner()) {
+
+            console.log(`${gameController.getActivePlayer().getToken()} is winner`)
+            resultText.innerText = `${gameController.getActivePlayer().getToken()} is winner`;
+            _resultScreen.classList.remove("hide");
+            gameController.getActivePlayer().addScore();
+            _boardContainer.classList.add("blurScreen");
+            _updateScores();
+            return;
+        }
+        else if (gameController.isTie()) {
+            resultText.innerText = `Tie!`;
+            _resultScreen.classList.remove("hide");
+            _boardContainer.classList.add("blurScreen");
+        }
 
 
-//     }
-//     const shouldRestartGame = () => shouldReset;
+    }
 
-//     return { playRound, shouldRestartGame, getActivePlayer, };
-// })();
+    function _restartGame() {
+        gameBoard.resetBoard();
+        _createNewBoard();
+        _resultScreen.classList.add("hide");
+        _boardContainer.classList.remove("blurScreen");
+    }
+    _restartButton.addEventListener("click", _restartGame)
 
-
-// const screenController = (function () {
-//     const boardScreen = document.querySelector(".board");
-//     const board = gameBoard.getBoard();
-
-
-//     function updateCell(selectedCell) {
-
-//         selectedCell.innerText = board[selectedCell.dataset.row][selectedCell.dataset.column].getToken();
-//     }
+    _boardScreen.addEventListener("click", _attachButtonEvent);
 
 
-//     function createNewBoard() {
-//         boardScreen.textContent = '';
-//         board.forEach((row, rowIndex) => {
-//             row.forEach((cell, columnIndex) => {
-//                 const cellButton = document.createElement("button");
-//                 cellButton.classList.add("cell");
-//                 cellButton.dataset.row = rowIndex;
-//                 cellButton.dataset.column = columnIndex;
-//                 if (cell.getToken() !== 0) cellButton.innerText = cell.getToken();
-//                 boardScreen.appendChild(cellButton);
+
+})();
 
 
-//             })
-//         })
-//     }
-
-//     function attachButtonEvent(event) {
-//         const selectedCell = event.target;
-
-//         gameController.playRound(selectedCell.dataset.row, selectedCell.dataset.column);
-//         updateCell(selectedCell);
-//         if (gameController.shouldRestartGame()) {
-//             gameBoard.resetBoard();
-//             createNewBoard();
-//         }
-
-
-//     }
-//     createNewBoard();
-//     boardScreen.addEventListener("click", attachButtonEvent);
-
-
-// })();
-
-// //*******This is factory function. You can create from it as much as you want************
 function cell() {
-    let id = 0;
-    let value = 0;
+    let _value = 0;
 
     const addToken = (token) => {
-        value = token;
+        _value = token;
     };
-    const getToken = () => value;
+    const getToken = () => _value;
 
     const resetCell = () => {
-        value = 0;
+        _value = 0;
     }
-    const setID = (cellID) => {
-        id = cellID;
-    }
-    const getID = () => id;
 
-    return { addToken, getToken, resetCell, setID, getID };
+
+    return { addToken, getToken, resetCell };
 
 }
 
 function CreatePlayer() {
-    let totalScore = 0;
-    let playerToken = "";
-    const getScore = () => totalScore;
+    let _totalScore = 0;
+    let _playerToken = "";
+    const getScore = () => _totalScore;
     const addScore = () => {
-        totalScore++;
+        _totalScore++;
     };
 
     const setToken = (token) => {
-        playerToken = token;
+        _playerToken = token;
     };
-    const getToken = () => playerToken;
+    const getToken = () => _playerToken;
 
-    return { getScore, addScore, setToken, getToken };
+    const resetScore = () => _totalScore = 0;
+
+    return { getScore, addScore, setToken, getToken, resetScore };
 
 }
