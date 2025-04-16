@@ -256,6 +256,11 @@ const screenController = (function () {
         }, 500);
     }
 
+    function _disableBoardButtons(enableButton) {
+        for (let cell of _boardScreen.children) {
+            cell.disabled = enableButton;
+        }
+    }
     function _showResults() {
         let resultText = _resultScreen.querySelector("h2");
         if (gameController.isWinner()) {
@@ -266,14 +271,17 @@ const screenController = (function () {
             gameController.getActivePlayer().addScore();
             _boardContainer.classList.add("blurScreen");
             _updateScores();
+            _disableBoardButtons(true);
             return;
         }
         else if (gameController.isTie()) {
             resultText.innerText = `Tie!`;
             _resultScreen.classList.remove("hide");
             _boardContainer.classList.add("blurScreen");
-        }
+            _disableBoardButtons(true);
 
+
+        }
 
     }
 
@@ -282,6 +290,7 @@ const screenController = (function () {
         _createNewBoard();
         _resultScreen.classList.add("hide");
         _boardContainer.classList.remove("blurScreen");
+
     }
     _restartButton.addEventListener("click", _restartGame)
 
